@@ -1,7 +1,8 @@
-require 'test_helper'
+require "test_helper"
 
 class ChunkTest < ActiveSupport::TestCase
-  # test "the truth" do
-  #   assert true
-  # end
+  test "position" do
+    chunk = Chunk.new(x: 10, y: 15)
+    assert chunk.position == { x: 10, y: 15 }
+  end
 end

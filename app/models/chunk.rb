@@ -1,5 +1,5 @@
 class Chunk < ApplicationRecord
   def position
-    return [x, y]
+    return { x: x, y: y }
   end
 end
