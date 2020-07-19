@@ -1,28 +1,26 @@
 require "rails_helper"
 
 describe Core::Chunks do
+  before :each do
+    @chunk = Chunk.new(x: 0, y: 0)
+  end
   describe "get by position" do
     describe "with existing chunk" do
-      before :each do
-        Chunk.create!(x: 10, y: 12)
-      end
       it "should find the existing chunk" do
-        chunk = Core::Chunks.get_or_create(10, 12)
+        @chunk.save!
+        chunk = Core::Chunks.get_or_create(0, 0)
         expect(chunk).not_to be_a_new(Chunk)
       end
     end
     describe "without existing chunk" do
       it "should create a new unsaved chunk" do
-        chunk = Core::Chunks.get_or_create(10, 12)
+        chunk = Core::Chunks.get_or_create(0, 0)
         expect(chunk).to be_a_new(Chunk)
       end
     end
   end
 
   describe "get neighbours" do
-    before :each do
-      @chunk = Chunk.new(x: 0, y: 0)
-    end
     it "should contain the four neighbours" do
       neighbours = Core::Chunks.get_neighbours(@chunk)
       neighbour_positions = neighbours.map { |x| x.position }
@@ -35,6 +33,13 @@ describe Core::Chunks do
       neighbour_positions = neighbours.map { |x| x.position }
       expected_positions = [[-1, 0], [0, -1], [1, 0], [0, 1]].map { |x| { x: x[0], y: x[1] } }
       expect(neighbour_positions).to contain_exactly(*expected_positions)
+    end
+  end
+
+  describe "Generate bomb positions" do
+    it "should generate 3300 mines per chunk" do
+      mines = Core::Chunks.generate_mine_positions(@chunk)
+      expect(mines.total_set).to eq(3300)
     end
   end
 end
