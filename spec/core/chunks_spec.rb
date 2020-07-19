@@ -36,10 +36,30 @@ describe Core::Chunks do
     end
   end
 
-  describe "Generate bomb positions" do
+  describe "Generate mine positions" do
     it "should generate 3300 mines per chunk" do
       mines = Core::Chunks.generate_mine_positions(@chunk)
       expect(mines.total_set).to eq(3300)
+    end
+    it "should be idempotent when generating mines for the same chunk" do
+      mines_first_run = Core::Chunks.generate_mine_positions(@chunk)
+      mines_second_run = Core::Chunks.generate_mine_positions(@chunk)
+      expect(mines_first_run.to_s).to eq(mines_second_run.to_s)
+    end
+    it "should be generate the same mine positions for a chunk on the same location" do
+      mines_first_run = Core::Chunks.generate_mine_positions(@chunk)
+      mines_second_run = Core::Chunks.generate_mine_positions(Chunk.new(x: @chunk.x, y: @chunk.y))
+      expect(mines_first_run.to_s).to eq(mines_second_run.to_s)
+    end
+    it "should be generate different mine positions for a chunk on a different location x" do
+      mines_first_run = Core::Chunks.generate_mine_positions(@chunk)
+      mines_second_run = Core::Chunks.generate_mine_positions(Chunk.new(x: @chunk.x + 1, y: @chunk.y))
+      expect(mines_first_run.to_s).to_not eq(mines_second_run.to_s)
+    end
+    it "should be generate different mine positions for a chunk on a different location y" do
+      mines_first_run = Core::Chunks.generate_mine_positions(@chunk)
+      mines_second_run = Core::Chunks.generate_mine_positions(Chunk.new(x: @chunk.x, y: @chunk.y + 1))
+      expect(mines_first_run.to_s).to_not eq(mines_second_run.to_s)
     end
   end
 end
