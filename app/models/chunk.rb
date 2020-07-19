@@ -3,6 +3,10 @@ class Chunk < ApplicationRecord
     return { x: x, y: y }
   end
 
+  def opened_positions
+    return to_bin_array(bin_opened_positions)
+  end
+
   def mines
     return to_bin_array(bin_mine_positions)
   end
