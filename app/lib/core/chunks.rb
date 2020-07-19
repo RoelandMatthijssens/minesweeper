@@ -24,14 +24,13 @@ module Core
     def generate_mine_positions(chunk)
       seed = (Digest::SHA1.hexdigest("(#{chunk.x},#{chunk.y})").to_i(16)).to_f
       prng = Random.new(seed)
-      mine_count = 3300
       chunk_size = 128 * 128
       random_positions = Set.new
       loop do
         random_positions << prng.rand(chunk_size - 1)
-        break if random_positions.size >= mine_count
+        break if random_positions.size >= chunk.mine_count
       end
-      mine_positions = BitArray.new(128 * 128)
+      mine_positions = BitArray.new(chunk_size)
       random_positions.each do |pos|
         mine_positions[pos] = 1
       end
