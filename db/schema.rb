@@ -18,8 +18,8 @@ ActiveRecord::Schema.define(version: 2020_07_17_231112) do
   create_table "chunks", force: :cascade do |t|
     t.integer "x"
     t.integer "y"
-    t.integer "mine_count"
-    t.integer "size"
+    t.integer "mine_count", default: 3300
+    t.integer "size", default: 16384
     t.bit "bin_mine_positions", limit: 16384
     t.bit "bin_opened_positions", limit: 16384
     t.boolean "active"
