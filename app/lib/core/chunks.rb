@@ -12,8 +12,6 @@ module Core
       return neighbour_positions.map { |pos| get_or_create(pos[0], pos[1]) }
     end
 
-    module_function :get_neighbours
-
     def get_or_create(x, y)
       chunk = Chunk.where(x: x, y: y)
       if chunk.any?
@@ -23,6 +21,7 @@ module Core
       end
     end
 
+    module_function :get_neighbours
     module_function :get_or_create
   end
 end
