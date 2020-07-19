@@ -20,9 +20,18 @@ describe Core::Chunks do
   end
 
   describe "get neighbours" do
+    before :each do
+      @chunk = Chunk.new(x: 0, y: 0)
+    end
     it "should contain the four neighbours" do
-      chunk = Chunk.new(x: 0, y: 0)
-      neighbours = Core::Chunks.get_neighbours(chunk)
+      neighbours = Core::Chunks.get_neighbours(@chunk)
+      neighbour_positions = neighbours.map { |x| x.position }
+      expected_positions = [[-1, 0], [0, -1], [1, 0], [0, 1]].map { |x| { x: x[0], y: x[1] } }
+      expect(neighbour_positions).to contain_exactly(*expected_positions)
+    end
+    it "shouldnt matter if a neighbouring chunk existed or not" do
+      Chunk.create!(x: -1, y: 0)
+      neighbours = Core::Chunks.get_neighbours(@chunk)
       neighbour_positions = neighbours.map { |x| x.position }
       expected_positions = [[-1, 0], [0, -1], [1, 0], [0, 1]].map { |x| { x: x[0], y: x[1] } }
       expect(neighbour_positions).to contain_exactly(*expected_positions)
