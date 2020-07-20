@@ -21,6 +21,13 @@ class Chunk < ApplicationRecord
     self.bin_mine_positions = new_positions
   end
 
+  def set_mine(x, y, value = 1)
+    pos = size * y + x
+    m = self.mines
+    m[pos] = value
+    self.mines = m
+  end
+
   def to_bin_array(x, size)
     x = x[0, size * size]
     return BitArray.new(x.size, [x].pack("B*"), reverse_byte: false)

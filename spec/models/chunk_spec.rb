@@ -17,35 +17,6 @@ describe Chunk do
     @chunk.save!
     expect(@chunk.mines.size).to eq(21 * 21)
   end
-  # it "should have a binary string for the opened positions" do
-  #   opened_positions = BitArray.new(10 * 10)
-  #   opened_positions[0] = 1
-  #   opened_positions[2] = 1
-  #   opened_positions[10 * 10 - 1] = 1
-  #   Chunk.create!(bin_opened_positions: opened_positions, size: 10)
-  #   chunk = Chunk.first
-  #   expect(chunk.opened_positions[0]).to eq(1)
-  #   expect(chunk.opened_positions[1]).to eq(0)
-  #   expect(chunk.opened_positions[2]).to eq(1)
-  #   expect(chunk.opened_positions[3]).to eq(0)
-  #   expect(chunk.opened_positions[10 * 10 - 1]).to eq(1)
-  #   expect(chunk.opened_positions.total_set).to eq(3)
-  # end
-  # it "should have a binary string for the mine positions" do
-  #   mines = BitArray.new(12 * 12)
-  #   mines[0] = 1
-  #   mines[2] = 1
-  #   mines[12 * 12 - 1] = 1
-  #   Chunk.create!(bin_mine_positions: mines, size: 12)
-  #   chunk = Chunk.first
-  #   expect(chunk.mines[0]).to eq(1)
-  #   expect(chunk.mines[1]).to eq(0)
-  #   expect(chunk.mines[2]).to eq(1)
-  #   expect(chunk.mines[3]).to eq(0)
-  #   expect(chunk.mines[12 * 12 - 1]).to eq(1)
-  #   expect(chunk.mines.total_set).to eq(3)
-  # end
-
   describe "update binary string positions" do
     it "should update the opened positions when passing a bit array" do
       random_position = rand(@chunk.size * @chunk.size - 1)
@@ -64,6 +35,25 @@ describe Chunk do
       @chunk.save!
       reloaded_mines = Chunk.first.mines
       expect(reloaded_mines[random_position]).to eq(1)
+    end
+  end
+  describe "set mine" do
+    it "should set a mine at the given x y position" do
+      @chunk.set_mine(0, 0)
+      mines = @chunk.mines
+      expect(mines[0]).to eq(1)
+    end
+    it "should set a mine at the given x y position" do
+      @chunk.size = 10
+      @chunk.set_mine(3, 3)
+      mines = @chunk.mines
+      expect(mines[33]).to eq(1)
+    end
+    it "should toggle mines of" do
+      @chunk.set_mine(3, 3)
+      expect(@chunk.mines.total_set).to eq(1)
+      @chunk.set_mine(3, 3, value = 0)
+      expect(@chunk.mines.total_set).to eq(0)
     end
   end
 end
