@@ -56,4 +56,13 @@ describe Chunk do
       expect(@chunk.mines.total_set).to eq(0)
     end
   end
+  describe "is_mine?" do
+    it "should indicate no mine at a position if there is none" do
+      expect(@chunk.is_mine?(1, 1)).to be_falsy
+    end
+    it "should indicate a mine at a position if there is one" do
+      @chunk.set_mine(1, 1)
+      expect(@chunk.is_mine?(1, 1)).to be_truthy
+    end
+  end
 end

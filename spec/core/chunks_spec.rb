@@ -71,4 +71,43 @@ describe Core::Chunks do
       end
     end
   end
+
+  describe "calculate cell values" do
+    using RSpec::Parameterized::TableSyntax
+    before :each do
+    end
+    describe "no border" do
+      where(:x, :y, :expected) do
+        1 | 1 | 1
+        1 | 2 | 1
+        1 | 3 | 1
+        2 | 1 | 1
+        2 | 2 | :mine
+        2 | 3 | 2
+        3 | 1 | 1
+        3 | 2 | 2
+        3 | 3 | :mine
+      end
+      with_them do
+        it "should count mines in neighbouring cells" do
+          chunk = Chunk.create!(x: 0, y: 0, size: 5, mine_count: 1)
+          chunk.set_mine(2, 2)
+          chunk.set_mine(3, 3)
+          # -----------
+          # | ? ? ? ? ?
+          # | ? 1 1 1 ?
+          # | ? 1 X 2 ?
+          # | ? 1 2 X ?
+          # | ? ? ? ? ?
+
+          actual = Core::Chunks.calculate_cell_value(chunk, x, y)
+          expect(actual).to eq(expected)
+        end
+      end
+    end
+    describe "against the border" do
+    end
+    describe "in the corner" do
+    end
+  end
 end

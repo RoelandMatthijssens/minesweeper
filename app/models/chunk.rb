@@ -28,6 +28,12 @@ class Chunk < ApplicationRecord
     self.mines = m
   end
 
+  def is_mine?(x, y)
+    pos = size * y + x
+    m = self.mines
+    return m[pos] == 1
+  end
+
   def to_bin_array(x, size)
     x = x[0, size * size]
     return BitArray.new(x.size, [x].pack("B*"), reverse_byte: false)

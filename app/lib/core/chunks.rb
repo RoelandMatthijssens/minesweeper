@@ -36,8 +36,27 @@ module Core
       return mine_positions
     end
 
+    def calculate_cell_value(chunk, x, y)
+      if chunk.is_mine?(x, y)
+        return :mine
+      end
+      neighbouring_cell_positions = [
+        [x - 1, y - 1],
+        [x, y - 1],
+        [x + 1, y - 1],
+        [x - 1, y],
+        # [x, y]
+        [x + 1, y],
+        [x - 1, y + 1],
+        [x, y + 1],
+        [x + 1, y + 1],
+      ]
+      return neighbouring_cell_positions.map { |x| chunk.is_mine?(x[0], x[1]) ? 1 : 0 }.reduce(&:+)
+    end
+
     module_function :get_neighbours
     module_function :get_or_create
     module_function :generate_mine_positions
+    module_function :calculate_cell_value
   end
 end
