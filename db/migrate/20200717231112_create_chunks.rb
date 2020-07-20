@@ -4,7 +4,7 @@ class CreateChunks < ActiveRecord::Migration[6.0]
       t.integer :x
       t.integer :y
       t.integer :mine_count, default: 3300
-      t.integer :size, default: 128 * 128
+      t.integer :size, default: 128
       t.column :bin_mine_positions, "bit(16384)"
       t.column :bin_opened_positions, "bit(16384)"
       t.boolean :active

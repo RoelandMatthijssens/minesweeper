@@ -26,10 +26,10 @@ module Core
       prng = Random.new(seed)
       random_positions = Set.new
       loop do
-        random_positions << prng.rand(chunk.size - 1)
+        random_positions << prng.rand(chunk.size * chunk.size - 1)
         break if random_positions.size >= chunk.mine_count
       end
-      mine_positions = BitArray.new(chunk.size)
+      mine_positions = BitArray.new(chunk.size * chunk.size)
       random_positions.each do |pos|
         mine_positions[pos] = 1
       end

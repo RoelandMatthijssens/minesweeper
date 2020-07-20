@@ -9,8 +9,16 @@ class Chunk < ApplicationRecord
     return to_bin_array(bin_opened_positions, size)
   end
 
+  def opened_positions=(new_positions)
+    self.bin_opened_positions = new_positions
+  end
+
   def mines
     return to_bin_array(bin_mine_positions, size)
+  end
+
+  def mines=(new_positions)
+    self.bin_mine_positions = new_positions
   end
 
   def to_bin_array(x, size)

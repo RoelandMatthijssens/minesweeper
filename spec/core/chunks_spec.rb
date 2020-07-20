@@ -2,7 +2,7 @@ require "rails_helper"
 
 describe Core::Chunks do
   before :each do
-    @chunk = Chunk.new(x: 0, y: 0)
+    @chunk = Chunk.new(x: 0, y: 0, size: 10, mine_count: 10)
   end
   describe "get by position" do
     describe "with existing chunk" do
@@ -49,24 +49,24 @@ describe Core::Chunks do
       expect(mines.to_s.index("1")).to be <= 9
     end
     describe "idempotency" do
+      before :each do
+        @chunk2 = Chunk.new(x: 1, y: 1, size: 10, mine_count: 10)
+      end
       it "should be idempotent when generating mines for the same chunk" do
         mines_first_run = Core::Chunks.generate_mine_positions(@chunk)
         mines_second_run = Core::Chunks.generate_mine_positions(@chunk)
         expect(mines_first_run.to_s).to eq(mines_second_run.to_s)
       end
       it "should be generate the same mine positions for a chunk on the same location" do
+        @chunk2.x = 0
+        @chunk2.y = 0
         mines_first_run = Core::Chunks.generate_mine_positions(@chunk)
-        mines_second_run = Core::Chunks.generate_mine_positions(Chunk.new(x: @chunk.x, y: @chunk.y))
+        mines_second_run = Core::Chunks.generate_mine_positions(@chunk2)
         expect(mines_first_run.to_s).to eq(mines_second_run.to_s)
       end
       it "should be generate different mine positions for a chunk on a different location x" do
         mines_first_run = Core::Chunks.generate_mine_positions(@chunk)
-        mines_second_run = Core::Chunks.generate_mine_positions(Chunk.new(x: @chunk.x + 1, y: @chunk.y))
-        expect(mines_first_run.to_s).to_not eq(mines_second_run.to_s)
-      end
-      it "should be generate different mine positions for a chunk on a different location y" do
-        mines_first_run = Core::Chunks.generate_mine_positions(@chunk)
-        mines_second_run = Core::Chunks.generate_mine_positions(Chunk.new(x: @chunk.x, y: @chunk.y + 1))
+        mines_second_run = Core::Chunks.generate_mine_positions(@chunk2)
         expect(mines_first_run.to_s).to_not eq(mines_second_run.to_s)
       end
     end
