@@ -3,13 +3,16 @@ module Core
     def get_neighbours(chunk)
       x = chunk.position[:x]
       y = chunk.position[:y]
-      neighbour_positions = [
-        [x - 1, y],
-        [x, y - 1],
-        [x + 1, y],
-        [x, y + 1],
-      ]
-      return neighbour_positions.map { |pos| get_or_create(pos[0], pos[1]) }
+      return {
+               top_left: get_or_create(-1, -1),
+               top_middle: get_or_create(0, -1),
+               top_right: get_or_create(1, -1),
+               middle_left: get_or_create(-1, 0),
+               middle_right: get_or_create(1, 0),
+               bottom_left: get_or_create(-1, 1),
+               bottom_middle: get_or_create(0, 1),
+               bottom_right: get_or_create(1, 1),
+             }
     end
 
     def get_or_create(x, y)
@@ -54,9 +57,22 @@ module Core
       return neighbouring_cell_positions.map { |x| chunk.is_mine?(x[0], x[1]) ? 1 : 0 }.reduce(&:+)
     end
 
+    def relative_to_absolute_position(chunk, x, y, x_offset, y_offset)
+      chunk_x_offset = (x + x_offset) / chunk.size
+      chunk_y_offset = (y + y_offset) / chunk.size
+      target_x = (x + x_offset) % chunk.size
+      target_y = (y + y_offset) % chunk.size
+      return {
+               chunk: get_or_create(chunk_x_offset, chunk_y_offset),
+               pos: { x: target_x,
+                      y: target_y },
+             }
+    end
+
     module_function :get_neighbours
     module_function :get_or_create
     module_function :generate_mine_positions
     module_function :calculate_cell_value
+    module_function :relative_to_absolute_position
   end
 end

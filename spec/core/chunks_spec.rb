@@ -21,18 +21,51 @@ describe Core::Chunks do
   end
 
   describe "get neighbours" do
-    it "should contain the four neighbours" do
-      neighbours = Core::Chunks.get_neighbours(@chunk)
-      neighbour_positions = neighbours.map { |x| x.position }
-      expected_positions = [[-1, 0], [0, -1], [1, 0], [0, 1]].map { |x| { x: x[0], y: x[1] } }
-      expect(neighbour_positions).to contain_exactly(*expected_positions)
+    it "should fetch all eight neighbours" do
+      expect(Core::Chunks.get_neighbours(@chunk).count).to eq(8)
+    end
+    it "should label each neighbour" do
+      labels = [:top_left, :top_middle, :top_right, :middle_left, :middle_right, :bottom_left, :bottom_middle, :bottom_right]
+      expect(Core::Chunks.get_neighbours(@chunk).keys).to contain_exactly(*labels)
+    end
+    it "should have the chunk on the right position matching the labels" do
+      labels = {
+        top_left: { x: -1, y: -1 },
+        top_middle: { x: 0, y: -1 },
+        top_right: { x: 1, y: -1 },
+
+        middle_left: { x: -1, y: 0 },
+        middle_right: { x: 1, y: 0 },
+
+        bottom_left: { x: -1, y: 1 },
+        bottom_middle: { x: 0, y: 1 },
+        bottom_right: { x: 1, y: 1 },
+      }
+      labels.each do |label, position|
+        puts(label)
+        expect(Core::Chunks.get_neighbours(@chunk)[label].position).to eq(position)
+      end
     end
     it "shouldnt matter if a neighbouring chunk existed or not" do
       Chunk.create!(x: -1, y: 0)
-      neighbours = Core::Chunks.get_neighbours(@chunk)
-      neighbour_positions = neighbours.map { |x| x.position }
-      expected_positions = [[-1, 0], [0, -1], [1, 0], [0, 1]].map { |x| { x: x[0], y: x[1] } }
-      expect(neighbour_positions).to contain_exactly(*expected_positions)
+      Chunk.create!(x: -1, y: -1)
+      Chunk.create!(x: 1, y: 1)
+      labels = {
+        top_left: { x: -1, y: -1 },
+        top_middle: { x: 0, y: -1 },
+        top_right: { x: 1, y: -1 },
+
+        middle_left: { x: -1, y: 0 },
+        middle_right: { x: 1, y: 0 },
+
+        bottom_left: { x: -1, y: 1 },
+        bottom_middle: { x: 0, y: 1 },
+        bottom_right: { x: 1, y: 1 },
+      }
+      labels.each do |label, position|
+        puts(label)
+        expect(Core::Chunks.get_neighbours(@chunk)[label].position).to eq(position)
+      end
     end
   end
 
@@ -77,6 +110,13 @@ describe Core::Chunks do
     before :each do
     end
     describe "no border" do
+      # -------------
+      # |           |
+      # |   1 1 1   |
+      # |   1 X 2   |
+      # |   1 2 X   |
+      # |           |
+      # -------------
       where(:x, :y, :expected) do
         1 | 1 | 1
         1 | 2 | 1
@@ -90,15 +130,9 @@ describe Core::Chunks do
       end
       with_them do
         it "should count mines in neighbouring cells" do
-          chunk = Chunk.create!(x: 0, y: 0, size: 5, mine_count: 1)
+          chunk = Chunk.create!(x: 0, y: 0, size: 5, mine_count: 2)
           chunk.set_mine(2, 2)
           chunk.set_mine(3, 3)
-          # -----------
-          # | ? ? ? ? ?
-          # | ? 1 1 1 ?
-          # | ? 1 X 2 ?
-          # | ? 1 2 X ?
-          # | ? ? ? ? ?
 
           actual = Core::Chunks.calculate_cell_value(chunk, x, y)
           expect(actual).to eq(expected)
@@ -106,8 +140,81 @@ describe Core::Chunks do
       end
     end
     describe "against the border" do
+      # -------------------------
+      # |       |       |       |
+      # |       |       |       |
+      # |       | X     |       |
+      # -------------------------
+      # |       |   1   |       |
+      # |       | 1   2 | X     |
+      # |       | X 4   | X     |
+      # -------------------------
+      # |       | X X X |       |
+      # |       |       |       |
+      # |       |       |       |
+      # -------------------------
+      where(:x, :y, :expected) do
+        1 | 0 | 1
+        0 | 1 | 1
+        2 | 1 | 2
+        1 | 2 | 4
+      end
+      with_them do
+        xit "should consider cells in neighbouring chunks" do
+          chunk_1_1 = Chunk.create!(x: 1, y: 1, size: 3, mine_count: 1)
+          chunk_1_1.set_mine(0, 2)
+
+          chunk_0_1 = Chunk.create!(x: 0, y: 1, size: 3, mine_count: 0)
+
+          chunk_2_1 = Chunk.create!(x: 2, y: 1, size: 3, mine_count: 2)
+          chunk_2_1.set_mine(0, 1)
+          chunk_2_1.set_mine(1, 1)
+
+          chunk_1_0 = Chunk.create!(x: 1, y: 0, size: 3, mine_count: 1)
+          chunk_1_0.set_mine(0, 2)
+
+          chunk_1_2 = Chunk.create!(x: 1, y: 2, size: 3, mine_count: 3)
+          chunk_1_2.set_mine(0, 0)
+          chunk_1_2.set_mine(1, 0)
+          chunk_1_2.set_mine(2, 0)
+
+          actual = Core::Chunks.calculate_cell_value(chunk_1_1, x, y)
+          expect(actual).to eq(expected)
+        end
+      end
     end
     describe "in the corner" do
+    end
+  end
+
+  describe "relative_to_absolute_position" do
+    where(:pos, :offset, :result_pos, :result_chunk) do
+      [
+        [[0, 0], [1, 0], [1, 0], [0, 0]],
+        [[0, 0], [-1, 0], [9, 0], [-1, 0]],
+        [[0, 0], [0, -1], [0, 9], [0, -1]],
+        [[0, 0], [-1, -1], [9, 9], [-1, -1]],
+        [[9, 9], [1, 0], [0, 9], [1, 0]],
+        [[9, 9], [-1, 0], [8, 9], [0, 0]],
+        [[9, 9], [0, 1], [9, 0], [0, 1]],
+        [[9, 9], [1, 1], [0, 0], [1, 1]],
+        [[0, 0], [10, 0], [0, 0], [1, 0]],
+        [[0, 0], [15, 0], [5, 0], [1, 0]],
+        [[0, 0], [21, 0], [1, 0], [2, 0]],
+        [[0, 0], [-21, 0], [9, 0], [-3, 0]],
+      ]
+    end
+    with_them do
+      it "should count mines in neighbouring cells" do
+        result = Core::Chunks.relative_to_absolute_position(@chunk, pos[0], pos[1], offset[0], offset[1])
+        position = result[:pos]
+        chunk = result[:chunk]
+
+        expect(position[:x]).to eq(result_pos[0])
+        expect(position[:y]).to eq(result_pos[1])
+        expect(chunk.position[:x]).to eq(result_chunk[0])
+        expect(chunk.position[:y]).to eq(result_chunk[1])
+      end
     end
   end
 end
