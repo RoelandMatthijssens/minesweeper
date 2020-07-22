@@ -8,14 +8,16 @@ describe Core::Chunks do
     describe "with existing chunk" do
       it "should find the existing chunk" do
         @chunk.save!
-        chunk = Core::Chunks.get_or_create(0, 0)
-        expect(chunk).not_to be_a_new(Chunk)
+        chunk = Core::Chunks.get_or_create(0, 0, 10)
+        expect(chunk).to be_a(Chunk)
+        expect(chunk).to be_persisted
       end
     end
     describe "without existing chunk" do
-      it "should create a new unsaved chunk" do
-        chunk = Core::Chunks.get_or_create(0, 0)
-        expect(chunk).to be_a_new(Chunk)
+      it "should create a new chunk" do
+        chunk = Core::Chunks.get_or_create(0, 0, 10)
+        expect(chunk).to be_a(Chunk)
+        expect(chunk).to be_persisted
       end
     end
   end
@@ -189,6 +191,50 @@ describe Core::Chunks do
       end
     end
     describe "in the corner" do
+      # -------------------------
+      # |       |       |       |
+      # |       |       |       |
+      # |     X |       |       |
+      # -------------------------
+      # |       | 1   0 |       |
+      # |       |       |       |
+      # |       | 2 X 1 |       |
+      # -------------------------
+      # |     X |       |   X   |
+      # |       |       | X     |
+      # |       |       |       |
+      # -------------------------
+      where(:x, :y, :expected) do
+        0 | 0 | 1
+        2 | 0 | 0
+        0 | 2 | 2
+        2 | 2 | 1
+      end
+      with_them do
+        it "should consider cells in neighbouring chunks" do
+          chunk_1_1 = Chunk.create!(x: 1, y: 1, size: 3, mine_count: 1)
+          chunk_1_1.set_mine(1, 2)
+          chunk_1_1.save!()
+
+          chunk_0_0 = Chunk.create!(x: 0, y: 0, size: 3, mine_count: 1)
+          chunk_0_0.set_mine(2, 2)
+          chunk_0_0.save!()
+
+          chunk_2_0 = Chunk.create!(x: 2, y: 0, size: 3, mine_count: 0)
+
+          chunk_0_2 = Chunk.create!(x: 0, y: 2, size: 3, mine_count: 1)
+          chunk_0_2.set_mine(2, 0)
+          chunk_0_2.save!()
+
+          chunk_2_2 = Chunk.create!(x: 2, y: 2, size: 3, mine_count: 2)
+          chunk_2_2.set_mine(1, 0)
+          chunk_2_2.set_mine(0, 1)
+          chunk_2_2.save!()
+
+          actual = Core::Chunks.calculate_cell_value(chunk_1_1, x, y)
+          expect(actual).to eq(expected)
+        end
+      end
     end
   end
 

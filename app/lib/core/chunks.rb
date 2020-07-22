@@ -3,24 +3,25 @@ module Core
     def get_neighbours(chunk)
       x = chunk.position[:x]
       y = chunk.position[:y]
+      s = chunk.size
       return {
-               top_left: get_or_create(-1, -1),
-               top_middle: get_or_create(0, -1),
-               top_right: get_or_create(1, -1),
-               middle_left: get_or_create(-1, 0),
-               middle_right: get_or_create(1, 0),
-               bottom_left: get_or_create(-1, 1),
-               bottom_middle: get_or_create(0, 1),
-               bottom_right: get_or_create(1, 1),
+               top_left: get_or_create(-1, -1, s),
+               top_middle: get_or_create(0, -1, s),
+               top_right: get_or_create(1, -1, s),
+               middle_left: get_or_create(-1, 0, s),
+               middle_right: get_or_create(1, 0, s),
+               bottom_left: get_or_create(-1, 1, s),
+               bottom_middle: get_or_create(0, 1, s),
+               bottom_right: get_or_create(1, 1, s),
              }
     end
 
-    def get_or_create(x, y)
+    def get_or_create(x, y, size)
       chunk = Chunk.where(x: x, y: y)
       if chunk.any?
         return chunk.first
       else
-        return Chunk.new(x: x, y: y)
+        return Chunk.create!(x: x, y: y)
       end
     end
 
@@ -61,7 +62,7 @@ module Core
       target_x = (x + x_offset) % chunk.size
       target_y = (y + y_offset) % chunk.size
       return {
-               chunk: get_or_create(chunk.x + chunk_x_offset, chunk.y + chunk_y_offset),
+               chunk: get_or_create(chunk.x + chunk_x_offset, chunk.y + chunk_y_offset, chunk.size),
                pos: { x: target_x,
                       y: target_y },
              }
