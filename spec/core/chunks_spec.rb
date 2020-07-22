@@ -44,7 +44,6 @@ describe Core::Chunks do
         bottom_right: { x: 1, y: 1 },
       }
       labels.each do |label, position|
-        puts(label)
         expect(Core::Chunks.get_neighbours(@chunk)[label].position).to eq(position)
       end
     end
@@ -65,7 +64,6 @@ describe Core::Chunks do
         bottom_right: { x: 1, y: 1 },
       }
       labels.each do |label, position|
-        puts(label)
         expect(Core::Chunks.get_neighbours(@chunk)[label].position).to eq(position)
       end
     end
@@ -109,8 +107,6 @@ describe Core::Chunks do
 
   describe "calculate cell values" do
     using RSpec::Parameterized::TableSyntax
-    before :each do
-    end
     describe "no border" do
       # -------------
       # |           |
@@ -119,6 +115,12 @@ describe Core::Chunks do
       # |   1 2 X   |
       # |           |
       # -------------
+      before :all do
+      end
+      after :all do
+        Chunk.all.destroy_all
+      end
+
       where(:x, :y, :expected) do
         1 | 1 | 1
         1 | 2 | 1
@@ -136,7 +138,6 @@ describe Core::Chunks do
           chunk.set_mine(2, 2)
           chunk.set_mine(3, 3)
           chunk.save!
-
           actual = Core::Chunks.calculate_cell_value(chunk, x, y)
           expect(actual).to eq(expected)
         end
@@ -233,6 +234,84 @@ describe Core::Chunks do
 
           actual = Core::Chunks.calculate_cell_value(chunk_1_1, x, y)
           expect(actual).to eq(expected)
+        end
+      end
+    end
+    describe "random full field" do
+      # -------------------------
+      # |       |     X |       |
+      # | X     |       |       |
+      # |     X |       |       |
+      # -------------------------
+      # | X     |   X   |   X   |
+      # |     X |       | X X   |
+      # |       |     X |       |
+      # -------------------------
+      # |       |     X |     X |
+      # |       |     X |       |
+      # |       | X     |       |
+      # -------------------------
+      before :all do
+        chunk_0_0 = Chunk.create!(x: 0, y: 0, size: 3, mine_count: 2)
+        chunk_0_1 = Chunk.create!(x: 0, y: 1, size: 3, mine_count: 2)
+        chunk_0_2 = Chunk.create!(x: 0, y: 2, size: 3, mine_count: 0)
+        chunk_1_0 = Chunk.create!(x: 1, y: 0, size: 3, mine_count: 1)
+        chunk_1_1 = Chunk.create!(x: 1, y: 1, size: 3, mine_count: 2)
+        chunk_1_2 = Chunk.create!(x: 1, y: 2, size: 3, mine_count: 3)
+        chunk_2_0 = Chunk.create!(x: 2, y: 0, size: 3, mine_count: 0)
+        chunk_2_1 = Chunk.create!(x: 2, y: 1, size: 3, mine_count: 3)
+        chunk_2_2 = Chunk.create!(x: 2, y: 2, size: 3, mine_count: 1)
+
+        chunk_0_0.set_mine(0, 1)
+        chunk_0_0.set_mine(2, 2)
+        chunk_0_0.save!()
+        chunk_0_1.set_mine(0, 0)
+        chunk_0_1.set_mine(2, 1)
+        chunk_0_1.save!()
+        chunk_0_2.save!()
+        chunk_1_0.set_mine(2, 0)
+        chunk_1_0.save!()
+        chunk_1_1.set_mine(1, 0)
+        chunk_1_1.set_mine(2, 2)
+        chunk_1_1.save!()
+        chunk_1_2.set_mine(2, 0)
+        chunk_1_2.set_mine(2, 1)
+        chunk_1_2.set_mine(0, 2)
+        chunk_1_2.save!()
+        chunk_2_0.save!()
+        chunk_2_1.set_mine(1, 0)
+        chunk_2_1.set_mine(0, 1)
+        chunk_2_1.set_mine(1, 1)
+        chunk_2_1.save!()
+        chunk_2_2.set_mine(2, 0)
+        chunk_2_2.save!()
+      end
+      after :all do
+        Chunk.all.destroy_all
+      end
+      where(:cx, :cy, :expected_values) do
+        [
+          [0, 0, [[1, 1, 0], [:mine, 2, 1], [2, 3, :mine]]],
+          [1, 0, [[0, 1, :mine], [1, 1, 1], [2, 1, 1]]],
+          [2, 0, [[1, 0, 0], [1, 0, 0], [1, 1, 1]]],
+          [0, 1, [[:mine, 3, 2], [1, 2, :mine], [0, 1, 1]]],
+          [1, 1, [[3, :mine, 2], [2, 2, 3], [1, 2, :mine]]],
+          [2, 1, [[3, :mine, 2], [:mine, :mine, 2], [4, 3, 2]]],
+          [0, 2, [[0, 0, 0], [0, 0, 1], [0, 0, 1]]],
+          [1, 2, [[0, 3, :mine], [1, 3, :mine], [:mine, 2, 1]]],
+          [2, 2, [[3, 1, :mine], [2, 1, 1], [1, 0, 0]]],
+        ]
+      end
+      with_them do
+        it "should consider cells in neighbouring chunks" do
+          chunk = Core::Chunks.get_or_create(cx, cy, 3)
+          [0, 1, 2].each do |x|
+            [0, 1, 2].each do |y|
+              expected = expected_values[y][x]
+              actual = Core::Chunks.calculate_cell_value(chunk, x, y)
+              expect(actual).to eq(expected)
+            end
+          end
         end
       end
     end
