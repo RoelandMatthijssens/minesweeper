@@ -133,6 +133,7 @@ describe Core::Chunks do
           chunk = Chunk.create!(x: 0, y: 0, size: 5, mine_count: 2)
           chunk.set_mine(2, 2)
           chunk.set_mine(3, 3)
+          chunk.save!
 
           actual = Core::Chunks.calculate_cell_value(chunk, x, y)
           expect(actual).to eq(expected)
@@ -160,23 +161,27 @@ describe Core::Chunks do
         1 | 2 | 4
       end
       with_them do
-        xit "should consider cells in neighbouring chunks" do
+        it "should consider cells in neighbouring chunks" do
           chunk_1_1 = Chunk.create!(x: 1, y: 1, size: 3, mine_count: 1)
           chunk_1_1.set_mine(0, 2)
+          chunk_1_1.save!()
 
           chunk_0_1 = Chunk.create!(x: 0, y: 1, size: 3, mine_count: 0)
 
           chunk_2_1 = Chunk.create!(x: 2, y: 1, size: 3, mine_count: 2)
           chunk_2_1.set_mine(0, 1)
-          chunk_2_1.set_mine(1, 1)
+          chunk_2_1.set_mine(0, 2)
+          chunk_2_1.save!()
 
           chunk_1_0 = Chunk.create!(x: 1, y: 0, size: 3, mine_count: 1)
           chunk_1_0.set_mine(0, 2)
+          chunk_1_0.save!()
 
           chunk_1_2 = Chunk.create!(x: 1, y: 2, size: 3, mine_count: 3)
           chunk_1_2.set_mine(0, 0)
           chunk_1_2.set_mine(1, 0)
           chunk_1_2.set_mine(2, 0)
+          chunk_1_2.save!()
 
           actual = Core::Chunks.calculate_cell_value(chunk_1_1, x, y)
           expect(actual).to eq(expected)
@@ -188,24 +193,27 @@ describe Core::Chunks do
   end
 
   describe "relative_to_absolute_position" do
-    where(:pos, :offset, :result_pos, :result_chunk) do
+    where(:chunk, :pos, :offset, :result_pos, :result_chunk) do
       [
-        [[0, 0], [1, 0], [1, 0], [0, 0]],
-        [[0, 0], [-1, 0], [9, 0], [-1, 0]],
-        [[0, 0], [0, -1], [0, 9], [0, -1]],
-        [[0, 0], [-1, -1], [9, 9], [-1, -1]],
-        [[9, 9], [1, 0], [0, 9], [1, 0]],
-        [[9, 9], [-1, 0], [8, 9], [0, 0]],
-        [[9, 9], [0, 1], [9, 0], [0, 1]],
-        [[9, 9], [1, 1], [0, 0], [1, 1]],
-        [[0, 0], [10, 0], [0, 0], [1, 0]],
-        [[0, 0], [15, 0], [5, 0], [1, 0]],
-        [[0, 0], [21, 0], [1, 0], [2, 0]],
-        [[0, 0], [-21, 0], [9, 0], [-3, 0]],
+        [[0, 0, 10], [0, 0], [1, 0], [1, 0], [0, 0]],
+        [[0, 0, 10], [0, 0], [-1, 0], [9, 0], [-1, 0]],
+        [[0, 0, 10], [0, 0], [0, -1], [0, 9], [0, -1]],
+        [[0, 0, 10], [0, 0], [-1, -1], [9, 9], [-1, -1]],
+        [[0, 0, 10], [9, 9], [1, 0], [0, 9], [1, 0]],
+        [[0, 0, 10], [9, 9], [-1, 0], [8, 9], [0, 0]],
+        [[0, 0, 10], [9, 9], [0, 1], [9, 0], [0, 1]],
+        [[0, 0, 10], [9, 9], [1, 1], [0, 0], [1, 1]],
+        [[0, 0, 10], [0, 0], [10, 0], [0, 0], [1, 0]],
+        [[0, 0, 10], [0, 0], [15, 0], [5, 0], [1, 0]],
+        [[0, 0, 10], [0, 0], [21, 0], [1, 0], [2, 0]],
+        [[0, 0, 10], [0, 0], [-21, 0], [9, 0], [-3, 0]],
+
+        [[1, 1, 3], [1, 0], [-1, -1], [0, 2], [1, 0]],
       ]
     end
     with_them do
       it "should count mines in neighbouring cells" do
+        @chunk = Chunk.create!(x: chunk[0], y: chunk[1], size: chunk[2])
         result = Core::Chunks.relative_to_absolute_position(@chunk, pos[0], pos[1], offset[0], offset[1])
         position = result[:pos]
         chunk = result[:chunk]

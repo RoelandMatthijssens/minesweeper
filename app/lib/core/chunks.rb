@@ -43,18 +43,16 @@ module Core
       if chunk.is_mine?(x, y)
         return :mine
       end
-      neighbouring_cell_positions = [
-        [x - 1, y - 1],
-        [x, y - 1],
-        [x + 1, y - 1],
-        [x - 1, y],
-        # [x, y]
-        [x + 1, y],
-        [x - 1, y + 1],
-        [x, y + 1],
-        [x + 1, y + 1],
-      ]
-      return neighbouring_cell_positions.map { |x| chunk.is_mine?(x[0], x[1]) ? 1 : 0 }.reduce(&:+)
+      mine_count = 0
+      [-1, 0, 1].each do |x_offset|
+        [-1, 0, 1].each do |y_offset|
+          abs_position = relative_to_absolute_position(chunk, x, y, x_offset, y_offset)
+          if abs_position[:chunk].is_mine?(abs_position[:pos][:x], abs_position[:pos][:y])
+            mine_count += 1
+          end
+        end
+      end
+      return mine_count
     end
 
     def relative_to_absolute_position(chunk, x, y, x_offset, y_offset)
@@ -63,7 +61,7 @@ module Core
       target_x = (x + x_offset) % chunk.size
       target_y = (y + y_offset) % chunk.size
       return {
-               chunk: get_or_create(chunk_x_offset, chunk_y_offset),
+               chunk: get_or_create(chunk.x + chunk_x_offset, chunk.y + chunk_y_offset),
                pos: { x: target_x,
                       y: target_y },
              }
