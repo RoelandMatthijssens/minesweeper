@@ -1,21 +1,22 @@
 class World {
-  constructor(data) {
-    const { chunk_size } = data;
-    Object.assign(this, { chunk_size });
-
+  constructor(canvas) {
     this.cell_size = 100;
     this.canvas = canvas;
     this.chunks = [];
-    this.initialize(data);
+    this.viewport = new Viewport();
+    this.control = new InputHandler(this.canvas, this.viewport);
   }
 
   initialize(world_data) {
+    const { chunk_size } = world_data;
+    this.chunk_size = chunk_size;
     world_data["chunks"].forEach((chunk_data) => {
-      this.chunks.push(new Chunk(chunk_data, this.chunk_size));
+      this.chunks.push(new Chunk(chunk_data, chunk_size));
     });
   }
 
   render() {
+    this.viewport.apply();
     this.chunks.forEach((chunk) => {
       chunk.render(this.cell_size);
     });
