@@ -26,7 +26,6 @@ class Chunk {
     pop();
 
     this.cells.forEach((cell, index) => {
-      console.log(index);
       cell.render(
         x + (index % this.size) * cell_size,
         y + Math.floor(index / this.size) * cell_size,
