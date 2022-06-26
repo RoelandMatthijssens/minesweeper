@@ -3,8 +3,8 @@ class World {
     this.cell_size = 100;
     this.canvas = canvas;
     this.chunks = [];
-    this.viewport = new Viewport();
-    this.control = new InputHandler(this.canvas, this.viewport);
+    this.viewport = new Viewport(this.canvas.width / 2, this.canvas.height / 2);
+    this.input_handler = new InputHandler(this.canvas, this.viewport);
   }
 
   initialize(world_data) {
