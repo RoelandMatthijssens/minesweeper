@@ -6,7 +6,7 @@ function preload() {
 }
 
 function setup() {
-  frameRate(5);
+  frameRate(60);
   const canvas = createCanvas(window.innerWidth, window.innerHeight);
   strokeWeight(1);
   stroke(51);
