@@ -9,6 +9,7 @@ class World {
     this.input_handler.zoom_handler = (x, y, d) => {
       this.viewport.zoom(x, y, d, this.canvas.width, this.canvas.height);
     };
+    this.input_handler.pan_handler = this.viewport.pan.bind(this.viewport);
   }
 
   initialize(world_data) {

@@ -27,4 +27,9 @@ class Viewport {
       this.max_zoom
     );
   }
+
+  pan(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+  }
 }
