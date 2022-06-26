@@ -5,6 +5,10 @@ class World {
     this.chunks = [];
     this.viewport = new Viewport(this.canvas.width / 2, this.canvas.height / 2);
     this.input_handler = new InputHandler(this.canvas, this.viewport);
+
+    this.input_handler.zoom_handler = (x, y, d) => {
+      this.viewport.zoom(x, y, d, this.canvas.width, this.canvas.height);
+    };
   }
 
   initialize(world_data) {
