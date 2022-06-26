@@ -1,9 +1,9 @@
 class World {
   constructor(canvas) {
-    this.cell_size = 100;
+    this.cell_size = 80;
     this.canvas = canvas;
     this.chunks = [];
-    this.viewport = new Viewport(this.canvas.width / 2, this.canvas.height / 2);
+    this.viewport = new Viewport();
     this.input_handler = new InputHandler(this.canvas, this.viewport);
 
     this.input_handler.zoom_handler = (x, y, d) => {
