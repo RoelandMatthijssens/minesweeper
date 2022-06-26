@@ -1,7 +1,7 @@
 class Cell {
   constructor(cell_data) {
     this.value = cell_data;
-    this.opened = this.value != "_";
+    this.opened = false;
   }
 
   render(x, y, cell_size) {
@@ -127,5 +127,9 @@ class Cell {
       })
       .flat();
     return quad(...segments);
+  }
+
+  clicked() {
+    this.opened = !this.opened;
   }
 }
